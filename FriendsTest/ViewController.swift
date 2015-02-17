@@ -28,15 +28,15 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
             user.email = emlEntered
 //            user.friendz = PFRelation()
             
-            user.signUpInBackgroundWithBlock {
-                (succeded: Bool!, error: NSError!) -> Void in
-                if error == nil {
-                    //Hooray!
-                    self.txtIncompleteFieldsMessage.text = "User Signed Up";
-                } else {
-                    //Show the errorString
-                }
-            }
+//            user.signUpInBackgroundWithBlock {
+//                (succeded: Bool!, error: NSError!) -> Void in
+//                if error == nil {
+//                    //Hooray!
+//                    self.txtIncompleteFieldsMessage.text = "User Signed Up";
+//                } else {
+//                    //Show the errorString
+//                }
+//            }
         }
         
         if usrEntered != "" && pwdEntered != "" && emlEntered != "" {
@@ -49,10 +49,10 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     
     @IBAction func sendFriendRequest(sender: AnyObject) {
         
-        var user = PFUser.currentUser()
+//        var user = PFUser.currentUser()
         var friendRequest = PFObject(className: "FriendRequest")
         
-        friendRequest["fromUser"] = user.objectId
+        friendRequest["fromUser"] = "PbLQKCgJor"
         friendRequest["toUser"] = "1nF2Lc4nDt"
         friendRequest["status"] = "Pending"
         
@@ -71,90 +71,61 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
     
     
     @IBOutlet weak var friendsRequestTable: UITableView!
-    
-    var users = ["hello"]
-//
-//    
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return users.count
-    }
-    
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        populateFriendRequests()
-        
-        let cell = UITableViewCell(style: .Subtitle, reuseIdentifier: nil)
-//        cell.textLabel?.text = users[indexPath.row]
-        return cell
-    }
-    
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        println("HHEY from \(users[indexPath.row])")
-    }
-    
-    @IBOutlet weak var displayUsername: UILabel!
-    
 
-    func populateFriendRequests(){
+    var users = ["hello", "goodbye"]
+    
+    var requestObjectId = "1nF2Lc4nDt"
+
+    func populateFriendRequests() -> NSArray{
         //give us a parse object - array that contains all friend request objects with "toUser" = "currentUser"
+        
         var query = PFQuery(className: "FriendRequest")
-
-        var users = [AnyObject]()
         
         query.whereKey("toUser", equalTo: "1nF2Lc4nDt")
         
-        var x = query.findObjects()
+        var butts = query.findObjects() as [PFObject]
+//        println(butts)
         
-        func each<T>(items: Array<T>, fn: T -> ()){
-            for item in items {
-                fn(item)
-            }
-        }
-        each([1,2,3]){
-            number in
-            println(number)
-        }
-        each(["one", "two", "three"]) {
-            number in
-            println(number)
-        }
-        each(x) {
-            number in
-            println(number)
-        }
-
-//        query.findObjects().map({x in "\(x)ee"})
+        return butts
+        
     }
     
-    
+    let friendRequestArray = populateFriendRequests
     override func viewDidLoad() {
         super.viewDidLoad()
         friendsRequestTable.dataSource = self
         friendsRequestTable.delegate = self
-
-        populateFriendRequests()
-
-        //        let butts = populateFriendRequests
-        
-        //        var blah = [AnyObject]()
-        //        blah.append(PFUser())
-        //        println(blah)
-        
-        // Do any additional setup after loading the view, typically from a nib.
         
     }
     
-
-//    
-//    func populateButtons(){
-//        let button = UIButton.buttonWithType(UIButtonType.System) as UIButton
-//        button.frame = CGRectMake(100, 100, 100, 50)
-//        button.backgroundColor = UIColor.greenColor()
-//        button.setTitle("New Friend Request", forState: UIControlState.Normal)
-//        button.addTarget(self, action: "statusAccepted", forControlEvents: UIControlEvents.TouchUpInside)
-//        
-//        self.view.addSubview(button)
-//    }
     
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        var users = populateFriendRequests()
+        return users.count
+    }
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = UITableViewCell(style: .Subtitle, reuseIdentifier: nil)
+        var pops = populateFriendRequests()
+        for pop in pops {
+            cell.textLabel?.text = pop.valueForKey("status") as NSString
+        }
+        return cell
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        var pops = populateFriendRequests()
+        
+        if pops[indexPath.row].valueForKey("status") != nil {
+            pops[indexPath.row].setObject("Accepted", forKey: "status")
+            pops[indexPath.row].saveInBackground()
+            // add requestor to current friend's friends
+            // add current friend to requestor's friends via cloud
+            
+        }
+    }
+
     
     //    func handleAcceptButtonPressed(sender: UIButton) {
 //        
@@ -187,11 +158,6 @@ class ViewController: UIViewController, UITextFieldDelegate, UITableViewDelegate
 
 //    
     
-    @IBOutlet weak var displayMe: UILabel!
-    
-    func convertTxt() {
-        displayMe.text = "lala"
-    }
     
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
